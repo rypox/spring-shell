@@ -65,6 +65,11 @@ public class Bootstrap {
 			HandlerUtils.flushAllHandlers(Logger.getLogger(""));
 		}
 
+		sw.stop();
+		if (bootstrap.getJLineShellComponent().isDevelopmentMode()) {
+			System.out.println("Total execution time: " + sw.getLastTaskTimeMillis() + " ms");
+		}
+
 		System.exit(exitShellRequest.getExitCode());
 	}
 
@@ -195,10 +200,6 @@ public class Bootstrap {
 		}
 
 		ctx.close();
-		sw.stop();
-		if (shell.isDevelopmentMode()) {
-			System.out.println("Total execution time: " + sw.getLastTaskTimeMillis() + " ms");
-		}
 		return exitShellRequest;
 	}
 
