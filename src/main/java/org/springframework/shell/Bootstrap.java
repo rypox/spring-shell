@@ -102,6 +102,24 @@ public class Bootstrap {
 		ctx.refresh();
 	}
 
+  public Bootstrap(String[] args, GenericApplicationContext givenCtx) {
+    try {
+      commandLine = SimpleShellCommandLineOptions.parseCommandLine(args);
+    } catch (IOException e) {
+      throw new ShellException(e.getMessage(), e);
+    }
+
+    this.ctx = givenCtx;
+    this.ctx.registerShutdownHook();
+    configureApplicationContext(this.ctx);
+
+    ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.ctx);
+    if (commandLine.getDisableInternalCommands())
+      scanner.scan(new String[] { "org.springframework.shell.converters", "org.springframework.shell.plugin.support" });
+    else
+      scanner.scan(new String[] { "org.springframework.shell.commands", "org.springframework.shell.converters", "org.springframework.shell.plugin.support" });
+  }
+  
 	public ApplicationContext getApplicationContext() {
 		return ctx;
 	}

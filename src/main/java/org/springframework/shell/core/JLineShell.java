@@ -42,6 +42,7 @@ import jline.WindowsTerminal;
 import jline.console.ConsoleReader;
 import jline.console.history.History;
 import jline.console.history.MemoryHistory;
+import jline.internal.Log;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.fusesource.jansi.Ansi;
@@ -80,8 +81,7 @@ public abstract class JLineShell extends AbstractShell implements Shell, Runnabl
 	// Constants
 	private static final String ANSI_CONSOLE_CLASSNAME = "org.fusesource.jansi.AnsiConsole";
 
-	private static final boolean JANSI_AVAILABLE = ClassUtils.isPresent(ANSI_CONSOLE_CLASSNAME,
-			JLineShell.class.getClassLoader());
+	private static final boolean JANSI_AVAILABLE = ClassUtils.isPresent(ANSI_CONSOLE_CLASSNAME,	JLineShell.class.getClassLoader());
 
 	private static final char ESCAPE = 27;
 
@@ -107,6 +107,8 @@ public abstract class JLineShell extends AbstractShell implements Shell, Runnabl
 	private boolean shutdownHookFired = false; // ROO-1599
 
 	private int historySize;
+
+	private boolean ansiEnabled = true;
 
 	public void run() {
 		reader = createConsoleReader();
@@ -247,7 +249,15 @@ public abstract class JLineShell extends AbstractShell implements Shell, Runnabl
 				}
 			}
 			if (consoleReader == null) {
-				consoleReader = new ConsoleReader();
+				 if (this.ansiEnabled)
+	          consoleReader = new ConsoleReader();
+	        else
+	          try {
+	            consoleReader = new ConsoleReader(new FileInputStream(FileDescriptor.in), System.out, new NoAnsiUnixTerminal());
+	          } catch (Exception ex) {
+	            Log.error(new Object[] { "Failed to construct terminal; falling back to default", ex });
+	            consoleReader = new ConsoleReader();
+	          }
 			}
 		}
 		catch (IOException ioe) {
